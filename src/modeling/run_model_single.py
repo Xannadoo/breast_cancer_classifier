@@ -154,6 +154,8 @@ def run(parameters):
         "benign": float(agg_predictions[0]),
         "malignant": float(agg_predictions[1]),
     }
+    with open("./sample_single_output/results.csv",'a') as f:
+        f.write(f"{float(agg_predictions[0])},{float(agg_predictions[1])}\n")
     print(json.dumps(predictions_dict))
 
 
