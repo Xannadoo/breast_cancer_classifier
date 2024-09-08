@@ -50,7 +50,7 @@ def load_model(parameters):
     model = model_class(input_channels)
     model.load_state_dict(torch.load(parameters["model_path"])["model"])
 
-    if (parameters["device_type"] == "gpu") and torch.has_cudnn:
+    if (parameters["device_type"] == "gpu") and torch.backends.cudnn.is_available():
         device = torch.device("cuda:{}".format(parameters["gpu_number"]))
     else:
         device = torch.device("cpu")
@@ -128,7 +128,10 @@ def run_model(model, device, exam_list, parameters):
                 batch_predictions = compute_batch_predictions(output, mode=parameters["model_mode"])
                 pred_df = pd.DataFrame({k: v[:, 1] for k, v in batch_predictions.items()})
                 pred_df.columns.names = ["label", "view_angle"]
-                predictions = pred_df.T.reset_index().groupby("label").mean().T[LABELS.LIST].values
+                pred_df= pred_df.T.reset_index()
+                pred_df.columns = ["label", "view_angle",'score']
+                pred_df.drop('view_angle', axis=1, inplace=True)
+                predictions = pred_df.groupby("label").mean().T[LABELS.LIST].values
                 predictions_for_datum.append(predictions)
             predictions_ls.append(np.mean(np.concatenate(predictions_for_datum, axis=0), axis=0))
 
